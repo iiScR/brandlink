@@ -1,7 +1,6 @@
 'use client';
 
-import { useEffect, useRef, Suspense } from 'react';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import Lenis from 'lenis';
@@ -12,18 +11,13 @@ import { Testimonials } from './sections/Testimonials';
 import { Footer } from './sections/Footer';
 import { AnimatedCounter } from './components/AnimatedCounter';
 import { GlassCard } from './components/GlassCard';
+import { HeroCanvas } from '../components/scenes/HeroScene';
+import { CityCanvas } from '../components/scenes/CityScene';
+import { GrowthCanvas } from '../components/scenes/GrowthScene';
+import { PortfolioCanvas } from '../components/scenes/PortfolioScene';
+import { CTACanvas } from '../components/scenes/CTAScene';
 
 gsap.registerPlugin(ScrollTrigger);
-
-const HeroCanvas = dynamic(() => import('../components/scenes/HeroScene').then(m => ({ default: m.HeroCanvas })), { ssr: false });
-const CityCanvas = dynamic(() => import('../components/scenes/CityScene').then(m => ({ default: m.CityCanvas })), { ssr: false });
-const GrowthCanvas = dynamic(() => import('../components/scenes/GrowthScene').then(m => ({ default: m.GrowthCanvas })), { ssr: false });
-const PortfolioCanvas = dynamic(() => import('../components/scenes/PortfolioScene').then(m => ({ default: m.PortfolioCanvas })), { ssr: false });
-const CTACanvas = dynamic(() => import('../components/scenes/CTAScene').then(m => ({ default: m.CTACanvas })), { ssr: false });
-
-interface ProgressRef {
-  value: number;
-}
 
 const metrics = [
   { label: 'Leads Generated', value: 1247, suffix: '+', color: 'purple' as const },
@@ -33,127 +27,96 @@ const metrics = [
 ];
 
 export default function Home() {
-  const heroRef = useRef<HTMLElement>(null);
-  const cityRef = useRef<HTMLElement>(null);
-  const growthRef = useRef<HTMLElement>(null);
-  const portfolioRef = useRef<HTMLElement>(null);
-  const ctaRef = useRef<HTMLElement>(null);
-
-  const heroProgress = useRef<ProgressRef>({ value: 0 });
-  const cityProgress = useRef<ProgressRef>({ value: 0 });
-  const growthProgress = useRef<ProgressRef>({ value: 0 });
-  const portfolioProgress = useRef<ProgressRef>({ value: 0 });
+  const heroProgress = useRef({ value: 1 });
+  const cityProgress = useRef({ value: 1 });
+  const growthProgress = useRef({ value: 1 });
+  const portfolioProgress = useRef({ value: 1 });
 
   useEffect(() => {
     const lenis = new Lenis({
-      duration: 1.4,
+      duration: 1.2,
       easing: (t: number) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       touchMultiplier: 2,
     });
 
     lenis.on('scroll', ScrollTrigger.update);
-
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
+    gsap.ticker.add((time) => lenis.raf(time * 1000));
     gsap.ticker.lagSmoothing(0);
 
     const ctx = gsap.context(() => {
-      if (heroRef.current) {
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: heroRef.current,
-            start: 'top top',
-            end: '+=140%',
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-            onUpdate: (self) => { heroProgress.current.value = self.progress; },
-          },
-        })
-        .fromTo('.hero-headline', { y: 0, opacity: 1 }, { y: -80, opacity: 0, ease: 'power2.in' }, 0.55)
-        .fromTo('.hero-sub', { y: 0, opacity: 1 }, { y: -60, opacity: 0, ease: 'power2.in' }, 0.6)
-        .fromTo('.hero-cta', { y: 0, opacity: 1 }, { y: -40, opacity: 0, ease: 'power2.in' }, 0.65)
-        .fromTo('.hero-scroll', { opacity: 1 }, { opacity: 0, ease: 'power2.in' }, 0.45);
-      }
+      // Hero entrance
+      gsap.fromTo('.hero-headline', { y: 60, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.hero-headline', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.hero-sub', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.15, ease: 'power3.out',
+        scrollTrigger: { trigger: '.hero-sub', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.hero-cta', { y: 30, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.3, ease: 'power3.out',
+        scrollTrigger: { trigger: '.hero-cta', start: 'top 90%', toggleActions: 'play none none reverse' },
+      });
 
-      if (cityRef.current) {
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: cityRef.current,
-            start: 'top top',
-            end: '+=130%',
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-            onUpdate: (self) => { cityProgress.current.value = self.progress; },
-          },
-        })
-        .fromTo('.city-label', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0)
-        .fromTo('.city-headline', { y: 60, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.05)
-        .fromTo('.city-body', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.1)
-        .to('.city-label', { y: -30, opacity: 0, ease: 'power2.in' }, 0.7)
-        .to('.city-headline', { y: -40, opacity: 0, ease: 'power2.in' }, 0.73)
-        .to('.city-body', { y: -30, opacity: 0, ease: 'power2.in' }, 0.76);
-      }
+      // City entrance
+      gsap.fromTo('.city-label', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: '.city-label', start: 'top 80%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.city-headline', { y: 60, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, delay: 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.city-headline', start: 'top 80%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.city-body', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.2, ease: 'power3.out',
+        scrollTrigger: { trigger: '.city-body', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
 
-      if (growthRef.current) {
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: growthRef.current,
-            start: 'top top',
-            end: '+=130%',
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-            onUpdate: (self) => { growthProgress.current.value = self.progress; },
-          },
-        })
-        .fromTo('.growth-label', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0)
-        .fromTo('.growth-headline', { y: 60, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.05)
-        .fromTo('.growth-body', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.1)
-        .fromTo('.growth-card', { y: 50, opacity: 0 }, { y: 0, opacity: 1, stagger: 0.04, ease: 'power2.out' }, 0.15)
-        .to('.growth-label', { y: -30, opacity: 0, ease: 'power2.in' }, 0.68)
-        .to('.growth-headline', { y: -40, opacity: 0, ease: 'power2.in' }, 0.7)
-        .to('.growth-body', { y: -30, opacity: 0, ease: 'power2.in' }, 0.72)
-        .to('.growth-card', { y: -20, opacity: 0, stagger: 0.02, ease: 'power2.in' }, 0.74);
-      }
+      // Growth entrance
+      gsap.fromTo('.growth-label', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: '.growth-label', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.growth-headline', { y: 60, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, delay: 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.growth-headline', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.growth-body', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.15, ease: 'power3.out',
+        scrollTrigger: { trigger: '.growth-body', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.growth-card', { y: 50, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.7, stagger: 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.growth-card', start: 'top 90%', toggleActions: 'play none none reverse' },
+      });
 
-      if (portfolioRef.current) {
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: portfolioRef.current,
-            start: 'top top',
-            end: '+=130%',
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-            onUpdate: (self) => { portfolioProgress.current.value = self.progress; },
-          },
-        })
-        .fromTo('.portfolio-label', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0)
-        .fromTo('.portfolio-headline', { y: 60, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.05)
-        .fromTo('.portfolio-body', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.1)
-        .to('.portfolio-label', { y: -30, opacity: 0, ease: 'power2.in' }, 0.68)
-        .to('.portfolio-headline', { y: -40, opacity: 0, ease: 'power2.in' }, 0.7)
-        .to('.portfolio-body', { y: -30, opacity: 0, ease: 'power2.in' }, 0.72);
-      }
+      // Portfolio entrance
+      gsap.fromTo('.portfolio-label', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, ease: 'power3.out',
+        scrollTrigger: { trigger: '.portfolio-label', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.portfolio-headline', { y: 60, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, delay: 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.portfolio-headline', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.portfolio-body', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.15, ease: 'power3.out',
+        scrollTrigger: { trigger: '.portfolio-body', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
 
-      if (ctaRef.current) {
-        gsap.timeline({
-          scrollTrigger: {
-            trigger: ctaRef.current,
-            start: 'top top',
-            end: '+=120%',
-            pin: true,
-            scrub: 0.8,
-            anticipatePin: 1,
-          },
-        })
-        .fromTo('.cta-headline', { y: 60, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0)
-        .fromTo('.cta-body', { y: 40, opacity: 0 }, { y: 0, opacity: 1, ease: 'power2.out' }, 0.08)
-        .fromTo('.cta-btn', { y: 30, opacity: 0, scale: 0.95 }, { y: 0, opacity: 1, scale: 1, ease: 'power2.out' }, 0.12);
-      }
+      // CTA entrance
+      gsap.fromTo('.cta-headline', { y: 60, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.cta-headline', start: 'top 80%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.cta-body', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.1, ease: 'power3.out',
+        scrollTrigger: { trigger: '.cta-body', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.cta-btn', { y: 30, opacity: 0, scale: 0.95 }, {
+        y: 0, opacity: 1, scale: 1, duration: 0.8, delay: 0.2, ease: 'power3.out',
+        scrollTrigger: { trigger: '.cta-btn', start: 'top 90%', toggleActions: 'play none none reverse' },
+      });
     });
 
     return () => {
@@ -166,19 +129,17 @@ export default function Home() {
     <main className="relative bg-[#050505] min-h-screen">
       <Navigation />
 
-      {/* SCENE 1: HERO */}
-      <section ref={heroRef} className="relative h-screen w-full overflow-hidden bg-[#050505]">
+      {/* HERO */}
+      <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
         <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="w-full h-full bg-[#050505]" />}>
-            <HeroCanvas progressRef={heroProgress} />
-          </Suspense>
+          <HeroCanvas progressRef={heroProgress} />
         </div>
         <div className="absolute inset-0 z-[5] pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.2) 0%, rgba(5,5,5,0.6) 60%, rgba(5,5,5,0.92) 100%)' }}
+          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.15) 0%, rgba(5,5,5,0.55) 55%, rgba(5,5,5,0.9) 100%)' }}
         />
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-8 pointer-events-none">
           <div className="max-w-5xl">
-            <h1 className="hero-headline text-5xl md:text-7xl lg:text-[6rem] font-bold leading-[1.05] tracking-tight mb-8 font-heading">
+            <h1 className="hero-headline text-5xl md:text-7xl lg:text-[5.5rem] font-bold leading-[1.05] tracking-tight mb-8 font-heading">
               Websites That Make{' '}
               <span className="text-gradient">Small Businesses</span>{' '}
               Look Unstoppable
@@ -196,22 +157,20 @@ export default function Home() {
             </div>
           </div>
         </div>
-        <div className="hero-scroll absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
+        <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-10">
           <div className="w-6 h-10 rounded-full border-2 border-white/20 flex justify-center pt-2">
             <div className="w-1 h-2 bg-white/40 rounded-full animate-bounce" />
           </div>
         </div>
       </section>
 
-      {/* SCENE 2: DIGITAL CITY */}
-      <section ref={cityRef} className="relative h-screen w-full overflow-hidden bg-[#050505]">
+      {/* DIGITAL CITY */}
+      <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
         <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="w-full h-full bg-[#050505]" />}>
-            <CityCanvas progressRef={cityProgress} />
-          </Suspense>
+          <CityCanvas progressRef={cityProgress} />
         </div>
         <div className="absolute inset-0 z-[5] pointer-events-none"
-          style={{ background: 'linear-gradient(90deg, rgba(5,5,5,0.88) 0%, rgba(5,5,5,0.4) 50%, rgba(5,5,5,0.15) 100%)' }}
+          style={{ background: 'linear-gradient(90deg, rgba(5,5,5,0.85) 0%, rgba(5,5,5,0.35) 50%, rgba(5,5,5,0.1) 100%)' }}
         />
         <div className="absolute inset-0 z-10 flex items-center px-8 md:px-20">
           <div className="max-w-xl">
@@ -229,18 +188,16 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SCENE 3: GROWTH ENGINE */}
-      <section ref={growthRef} className="relative min-h-screen w-full overflow-hidden bg-[#050505]">
+      {/* GROWTH ENGINE */}
+      <section className="relative py-32 md:py-40 w-full overflow-hidden bg-[#050505]">
         <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="w-full h-full bg-[#050505]" />}>
-            <GrowthCanvas progressRef={growthProgress} />
-          </Suspense>
+          <GrowthCanvas progressRef={growthProgress} />
         </div>
         <div className="absolute inset-0 z-[5] pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.3) 0%, rgba(5,5,5,0.7) 70%, rgba(5,5,5,0.92) 100%)' }}
+          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.25) 0%, rgba(5,5,5,0.65) 60%, rgba(5,5,5,0.92) 100%)' }}
         />
-        <div className="relative z-10 max-w-7xl mx-auto px-8 py-32">
-          <div className="text-center mb-24">
+        <div className="relative z-10 max-w-7xl mx-auto px-8">
+          <div className="text-center mb-20">
             <span className="growth-label text-sm font-medium tracking-widest uppercase text-[#06B6D4] mb-5 block">
               The Engine
             </span>
@@ -252,7 +209,7 @@ export default function Home() {
             </p>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {metrics.map((m, i) => (
+            {metrics.map((m) => (
               <div key={m.label} className="growth-card">
                 <GlassCard glowColor={m.color} className="p-8 text-center">
                   <div className="text-4xl md:text-5xl font-bold mb-2 font-heading text-gradient">
@@ -266,15 +223,13 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SCENE 4: PORTFOLIO SHOWROOM */}
-      <section ref={portfolioRef} className="relative h-screen w-full overflow-hidden bg-[#050505]">
+      {/* PORTFOLIO SHOWROOM */}
+      <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
         <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="w-full h-full bg-[#050505]" />}>
-            <PortfolioCanvas progressRef={portfolioProgress} />
-          </Suspense>
+          <PortfolioCanvas progressRef={portfolioProgress} />
         </div>
         <div className="absolute inset-0 z-[5] pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.5) 0%, rgba(5,5,5,0.8) 60%, rgba(5,5,5,0.95) 100%)' }}
+          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.4) 0%, rgba(5,5,5,0.75) 60%, rgba(5,5,5,0.95) 100%)' }}
         />
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-8 pointer-events-none">
           <div className="max-w-3xl">
@@ -291,24 +246,22 @@ export default function Home() {
         </div>
       </section>
 
-      {/* SCENE 5: SERVICES */}
+      {/* SERVICES */}
       <ServicesGrid />
 
-      {/* SCENE 6: PROCESS */}
+      {/* PROCESS */}
       <ProcessTimeline />
 
-      {/* SCENE 7: TESTIMONIALS */}
+      {/* TESTIMONIALS */}
       <Testimonials />
 
-      {/* SCENE 8: CTA VAULT */}
-      <section ref={ctaRef} className="relative h-screen w-full overflow-hidden bg-[#050505]">
+      {/* CTA VAULT */}
+      <section className="relative h-screen w-full overflow-hidden bg-[#050505]">
         <div className="absolute inset-0 z-0">
-          <Suspense fallback={<div className="w-full h-full bg-[#050505]" />}>
-            <CTACanvas />
-          </Suspense>
+          <CTACanvas />
         </div>
         <div className="absolute inset-0 z-[5] pointer-events-none"
-          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.35) 0%, rgba(5,5,5,0.75) 60%, rgba(5,5,5,0.95) 100%)' }}
+          style={{ background: 'radial-gradient(ellipse at center, rgba(5,5,5,0.3) 0%, rgba(5,5,5,0.7) 60%, rgba(5,5,5,0.95) 100%)' }}
         />
         <div className="absolute inset-0 z-10 flex flex-col items-center justify-center text-center px-8">
           <div className="max-w-3xl">
