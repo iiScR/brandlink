@@ -1,8 +1,11 @@
 'use client';
 
-import { useRef } from 'react';
-import { useInView } from 'framer-motion';
+import { useRef, useEffect } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { GlassCard } from '../components/GlassCard';
+
+gsap.registerPlugin(ScrollTrigger);
 
 const services = [
   {
@@ -56,46 +59,59 @@ const services = [
 
 export function ServicesGrid() {
   const sectionRef = useRef<HTMLElement>(null);
-  const isInView = useInView(sectionRef, { once: true, margin: '-200px' });
+
+  useEffect(() => {
+    if (!sectionRef.current) return;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo('.services-label', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, ease: 'power2.out',
+        scrollTrigger: { trigger: '.services-label', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.services-headline', { y: 50, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.1, ease: 'power2.out',
+        scrollTrigger: { trigger: '.services-headline', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.services-body', { y: 40, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.8, delay: 0.15, ease: 'power2.out',
+        scrollTrigger: { trigger: '.services-body', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+      gsap.fromTo('.service-card', { y: 60, opacity: 0 }, {
+        y: 0, opacity: 1, duration: 0.7, stagger: 0.12, ease: 'power2.out',
+        scrollTrigger: { trigger: '.service-card', start: 'top 85%', toggleActions: 'play none none reverse' },
+      });
+    }, sectionRef);
+
+    return () => ctx.revert();
+  }, []);
 
   return (
-    <section ref={sectionRef} id="services" className="relative py-32 w-full bg-[#050505]">
-      <div className="max-w-7xl mx-auto px-6">
-        <div
-          className={`text-center mb-20 transition-all duration-1000 ${
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
-          }`}
-        >
-          <span className="text-sm font-medium tracking-widest uppercase text-[#7C3AED] mb-4 block">
+    <section ref={sectionRef} id="services" className="relative py-40 w-full bg-[#050505]">
+      <div className="max-w-7xl mx-auto px-8">
+        <div className="text-center mb-24">
+          <span className="services-label text-sm font-medium tracking-widest uppercase text-[#7C3AED] mb-5 block">
             What We Do
           </span>
-          <h2 className="text-4xl md:text-6xl font-bold mb-6 font-heading">
+          <h2 className="services-headline text-4xl md:text-6xl lg:text-7xl font-bold mb-8 font-heading">
             Services Built for{' '}
             <span className="text-gradient">Results</span>
           </h2>
-          <p className="text-lg text-white/50 max-w-2xl mx-auto">
-            Every service is designed to move the needle — no fluff, no filler, 
-            just strategic design that drives real business outcomes.
+          <p className="services-body text-lg text-white/45 max-w-2xl mx-auto leading-relaxed">
+            Every service is designed to move the needle — no fluff, no filler, just strategic design that drives real business outcomes.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          {services.map((service, i) => (
-            <div
-              key={service.title}
-              className={`transition-all duration-700 ${
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-              }`}
-              style={{ transitionDelay: `${0.2 + i * 0.1}s` }}
-            >
-              <GlassCard glowColor={service.color} className="p-8 h-full group">
-                <div className={`mb-6 transition-transform duration-300 group-hover:scale-110 ${
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+          {services.map((service) => (
+            <div key={service.title} className="service-card">
+              <GlassCard glowColor={service.color} className="p-10 h-full group">
+                <div className={`mb-8 transition-transform duration-300 group-hover:scale-110 ${
                   service.color === 'purple' ? 'text-[#7C3AED]' : service.color === 'blue' ? 'text-[#2563EB]' : 'text-[#06B6D4]'
                 }`}>
                   {service.icon}
                 </div>
-                <h3 className="text-2xl font-bold mb-3 font-heading">{service.title}</h3>
-                <p className="text-white/50 leading-relaxed">{service.description}</p>
+                <h3 className="text-2xl md:text-3xl font-bold mb-4 font-heading">{service.title}</h3>
+                <p className="text-white/45 leading-relaxed text-base">{service.description}</p>
               </GlassCard>
             </div>
           ))}
